@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}GamePlan{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+{% if current_user.is_authenticated %}
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="{{ url_for('main.index') }}">
+      <span class="brand-mark">GP</span> GamePlan
+      {% if current_user.team %}<span class="brand-team">// {{ current_user.team.name }}</span>{% endif %}
+    </a>
+    {% if current_user.team %}
+    <nav class="navlinks">
+      <a href="{{ url_for('main.dashboard') }}" class="{{ 'active' if request.endpoint == 'main.dashboard' }}">Kalendarz</a>
+      <a href="{{ url_for('tactics.index') }}" class="{{ 'active' if request.endpoint and request.endpoint.startswith('tactics.') }}">Taktyki</a>
+      <a href="{{ url_for('matches.index') }}" class="{{ 'active' if request.endpoint and request.endpoint.startswith('matches.') }}">Mecze</a>
+      <a href="{{ url_for('main.team_info') }}" class="{{ 'active' if request.endpoint == 'main.team_info' }}">Zespół</a>
+    </nav>
+    {% endif %}
+    <div class="topbar-user">
+      <span class="user-pill">{{ current_user.username }}{% if current_user.role %} <em>({{ 'gracz' if current_user.role == 'player' else 'rezerwowy' }})</em>{% endif %}</span>
+      <a class="btn btn-ghost btn-sm" href="{{ url_for('auth.logout') }}">Wyloguj</a>
+    </div>
+  </div>
+</header>
+{% endif %}
+
+<main class="page">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-wrap">
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</main>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

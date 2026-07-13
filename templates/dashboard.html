@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% block title %}Kalendarz — {{ team.name }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-head">
+    <h1>Terminarz drużyny</h1>
+    <p class="muted">Najbliższe 14 dni — najedź kursorem na dzień, by zobaczyć dostępność graczy. Kliknij, aby dodać wpis.</p>
+  </div>
+
+  <div class="legend">
+    <span class="legend-item"><i class="dot dot-available"></i> Dostępny</span>
+    <span class="legend-item"><i class="dot dot-unavailable"></i> Niedostępny</span>
+    <span class="legend-item"><i class="dot dot-unknown"></i> Brak informacji</span>
+    <span class="legend-sep"></span>
+    <span class="legend-item"><i class="tag-dot tag-training"></i> Trening</span>
+    <span class="legend-item"><i class="tag-dot tag-casual"></i> Luźne granie</span>
+    <span class="legend-item"><i class="tag-dot tag-match"></i> Mecz</span>
+  </div>
+
+  <div class="calendar-grid">
+    {% for day in calendar_data %}
+    <div class="day-cell {{ 'is-today' if day.is_today }} {{ 'is-weekend' if day.is_weekend }}" data-date="{{ day.date }}" id="day-{{ day.date }}">
+      <div class="day-head">
+        <span class="day-name">{{ day.day_name }}</span>
+        <span class="day-num">{{ day.day_num }} {{ day.month_name }}</span>
+      </div>
+
+      <div class="day-sessions">
+        {% for s in day.sessions %}
+          <span class="tag-dot tag-{{ s.type }}" title="{{ s.note or '' }}">
+            {{ {'training':'Trening','casual':'Luźne','match':'Mecz'}[s.type] }}
+            {% if s.time_from %}<b>{{ s.time_from }}{% if s.time_to %}–{{ s.time_to }}{% endif %}</b>{% endif %}
+          </span>
+        {% endfor %}
+      </div>
+
+      <div class="day-avail-mini">
+        {% set avail_count = day.members|selectattr('status','equalto','available')|list|length %}
+        {% set unavail_count = day.members|selectattr('status','equalto','unavailable')|list|length %}
+        {% set unknown_count = day.members|selectattr('status','equalto','unknown')|list|length %}
+        <span class="mini-count"><i class="dot dot-available"></i>{{ avail_count }}</span>
+        <span class="mini-count"><i class="dot dot-unavailable"></i>{{ unavail_count }}</span>
+        <span class="mini-count"><i class="dot dot-unknown"></i>{{ unknown_count }}</span>
+      </div>
+
+      {% if day.my_status %}
+        <div class="my-status-badge my-status-{{ day.my_status }}">
+          Ty: {{ 'dostępny' if day.my_status == 'available' else 'niedostępny' }}
+          {% if day.my_status == 'available' and day.my_time_from %} {{ day.my_time_from }}{% if day.my_time_to %}–{{ day.my_time_to }}{% endif %}{% endif %}
+        </div>
+      {% else %}
+        <div class="my-status-badge my-status-unknown">Ustaw dostępność</div>
+      {% endif %}
+
+      <div class="tooltip-content" style="display:none">
+        <div class="tt-title">{{ day.day_name }}, {{ day.day_num }} {{ day.month_name }}</div>
+        <ul class="tt-list">
+          {% for mem in day.members %}
+            <li>
+              <i class="dot dot-{{ mem.status }}"></i>
+              <span class="tt-name">{{ mem.username }}</span>
+              <span class="tt-role">{{ 'gracz' if mem.role == 'player' else 'rez.' }}</span>
+              <span class="tt-status">
+                {% if mem.status == 'available' %}
+                  dostępny{% if mem.time_from %} {{ mem.time_from }}{% if mem.time_to %}–{{ mem.time_to }}{% endif %}{% endif %}
+                {% elif mem.status == 'unavailable' %}
+                  niedostępny
+                {% else %}
+                  brak informacji
+                {% endif %}
+              </span>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<div id="day-tooltip" class="day-tooltip"></div>
+
+{% for day in calendar_data %}
+<dialog class="day-modal" id="modal-{{ day.date }}">
+  <div class="modal-head">
+    <h3>{{ day.day_name }}, {{ day.day_num }} {{ day.month_name }}</h3>
+    <button class="btn btn-ghost btn-sm modal-close" onclick="this.closest('dialog').close()">Zamknij ✕</button>
+  </div>
+
+  <div class="modal-body">
+    <div class="modal-col">
+      <h4>Twoja dostępność</h4>
+      <form method="POST" action="{{ url_for('main.set_availability') }}" class="form form-compact">
+        <input type="hidden" name="date" value="{{ day.date }}">
+        <div class="radio-row">
+          <label class="radio-pill"><input type="radio" name="status" value="available" {{ 'checked' if day.my_status == 'available' or not day.my_status }} onchange="toggleHours(this)"> Dostępny</label>
+          <label class="radio-pill"><input type="radio" name="status" value="unavailable" {{ 'checked' if day.my_status == 'unavailable' }} onchange="toggleHours(this)"> Niedostępny</label>
+        </div>
+        <div class="hours-row" data-hours-for="{{ day.date }}">
+          <div>
+            <label>Od</label>
+            <input type="time" name="time_from" value="{{ day.my_time_from }}">
+          </div>
+          <div>
+            <label>Do</label>
+            <input type="time" name="time_to" value="{{ day.my_time_to }}">
+          </div>
+        </div>
+        <label>Notatka (opcjonalnie)</label>
+        <input type="text" name="note" maxlength="200" value="{{ day.my_note or '' }}" placeholder="np. dostępny tylko wieczorem">
+        <button type="submit" class="btn btn-primary btn-block btn-sm">Zapisz dostępność</button>
+      </form>
+    </div>
+
+    <div class="modal-col">
+      <h4>Dodaj wydarzenie</h4>
+      <form method="POST" action="{{ url_for('main.add_session') }}" class="form form-compact">
+        <input type="hidden" name="date" value="{{ day.date }}">
+        <label>Typ</label>
+        <select name="type" required>
+          <option value="training">Trening</option>
+          <option value="casual">Luźne granie</option>
+          <option value="match">Mecz</option>
+        </select>
+        <div class="hours-row">
+          <div><label>Od</label><input type="time" name="time_from"></div>
+          <div><label>Do</label><input type="time" name="time_to"></div>
+        </div>
+        <label>Notatka (opcjonalnie)</label>
+        <input type="text" name="note" maxlength="200" placeholder="np. serwer scrim, VOD review...">
+        <button type="submit" class="btn btn-accent btn-block btn-sm">Dodaj do kalendarza</button>
+      </form>
+
+      {% if day.sessions %}
+      <h4 class="mt">Wydarzenia tego dnia</h4>
+      <ul class="session-list">
+        {% for s in day.sessions %}
+        <li>
+          <span class="tag-dot tag-{{ s.type }}">{{ {'training':'Trening','casual':'Luźne','match':'Mecz'}[s.type] }}</span>
+          {% if s.time_from %}<span class="muted small">{{ s.time_from }}{% if s.time_to %}–{{ s.time_to }}{% endif %}</span>{% endif %}
+          {% if s.note %}<span class="muted small">— {{ s.note }}</span>{% endif %}
+          {% if s.created_by == current_user.id %}
+          <form method="POST" action="{{ url_for('main.delete_session', session_id=s.id) }}" style="display:inline">
+            <button type="submit" class="btn-icon-del" title="Usuń">✕</button>
+          </form>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+
+    <div class="modal-col">
+      <h4>Dostępność zespołu</h4>
+      <ul class="tt-list">
+        {% for mem in day.members %}
+        <li>
+          <i class="dot dot-{{ mem.status }}"></i>
+          <span class="tt-name">{{ mem.username }}</span>
+          <span class="tt-role">{{ 'gracz' if mem.role == 'player' else 'rez.' }}</span>
+          <span class="tt-status">
+            {% if mem.status == 'available' %}
+              dostępny{% if mem.time_from %} {{ mem.time_from }}{% if mem.time_to %}–{{ mem.time_to }}{% endif %}{% endif %}
+            {% elif mem.status == 'unavailable' %}
+              niedostępny
+            {% else %}
+              brak informacji
+            {% endif %}
+          </span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</dialog>
+{% endfor %}
+
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

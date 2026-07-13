@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}{{ map.display_name }} — Taktyki{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-head">
+    <a href="{{ url_for('tactics.index') }}" class="back-link">← Wróć do taktyk</a>
+    <h1>{{ map.display_name }}</h1>
+    {% if tactic %}<p class="muted small">Ostatnia aktualizacja: {{ tactic.updated_at.strftime('%d.%m.%Y %H:%M') }}</p>{% endif %}
+  </div>
+
+  <div class="card">
+    <h3>Opis taktyk</h3>
+    <form method="POST" action="{{ url_for('tactics.map_save', map_id=map.id) }}" class="form">
+      <textarea name="content" rows="14" placeholder="Opisz strategie, ustawienia, granaty, callouty...">{{ tactic.content if tactic else '' }}</textarea>
+      <button type="submit" class="btn btn-primary btn-sm">Zapisz taktykę</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>Grafiki / callouty</h3>
+    <form method="POST" action="{{ url_for('tactics.map_upload', map_id=map.id) }}" enctype="multipart/form-data" class="upload-form">
+      <input type="file" name="image" accept="image/png,image/jpeg,image/gif,image/webp" required>
+      <input type="text" name="caption" placeholder="Opis grafiki (opcjonalnie)" maxlength="200">
+      <button type="submit" class="btn btn-accent btn-sm">Dodaj grafikę</button>
+    </form>
+
+    {% if images %}
+    <div class="gallery">
+      {% for img in images %}
+      <div class="gallery-item">
+        <img src="{{ url_for('static', filename='uploads/' + img.filename) }}" alt="{{ img.caption or map.display_name }}">
+        {% if img.caption %}<div class="gallery-caption">{{ img.caption }}</div>{% endif %}
+        <form method="POST" action="{{ url_for('tactics.image_delete', map_id=map.id, image_id=img.id) }}" onsubmit="return confirm('Usunąć tę grafikę?');">
+          <button type="submit" class="btn-icon-del gallery-del" title="Usuń">✕</button>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="muted">Brak grafik dla tej mapy. Dodaj pierwszą powyżej.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

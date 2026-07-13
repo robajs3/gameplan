@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Rejestracja — GamePlan{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo"><span class="brand-mark">GP</span> GamePlan</div>
+    <p class="auth-subtitle">Załóż konto i dołącz do drużyny</p>
+    {% if pending_code %}
+      <div class="hint-box">Masz zaproszenie z kodem: <strong>{{ pending_code }}</strong> — po rejestracji zostaniesz poproszony o dołączenie.</div>
+    {% endif %}
+    <form method="POST" class="form">
+      <label>Nazwa użytkownika</label>
+      <input type="text" name="username" required autofocus>
+      <label>E-mail</label>
+      <input type="email" name="email" required>
+      <label>Hasło</label>
+      <input type="password" name="password" required minlength="6">
+      <label>Powtórz hasło</label>
+      <input type="password" name="password2" required minlength="6">
+      <button type="submit" class="btn btn-primary btn-block">Utwórz konto</button>
+    </form>
+    <p class="auth-switch">Masz już konto? <a href="{{ url_for('auth.login') }}">Zaloguj się</a></p>
+  </div>
+</div>
+{% endblock %}

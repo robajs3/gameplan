@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}Mecze — {{ team.name }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-head page-head-row">
+    <div>
+      <h1>Mecze</h1>
+      <p class="muted">Match roomy, plan map i analizy przedmeczowe</p>
+    </div>
+    <a href="{{ url_for('matches.new_match') }}" class="btn btn-accent">+ Nowy mecz</a>
+  </div>
+
+  <h3 class="section-title">Nadchodzące</h3>
+  {% if upcoming %}
+  <div class="match-list">
+    {% for m in upcoming %}
+    <a class="match-card" href="{{ url_for('matches.detail', match_id=m.id) }}">
+      <div class="match-date">
+        <span class="match-day">{{ m.match_date.day }}</span>
+        <span class="match-month">{{ m.match_date.strftime('%m.%Y') }}</span>
+      </div>
+      <div class="match-info">
+        <div class="match-opponent">vs {{ m.opponent }}</div>
+        <div class="muted small">{% if m.match_time %}Godz. {{ m.match_time }}{% endif %}</div>
+      </div>
+      <span class="tag tag-upcoming">Nadchodzący</span>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="muted">Brak zaplanowanych meczów.</p>
+  {% endif %}
+
+  <h3 class="section-title mt">Zakończone</h3>
+  {% if past %}
+  <div class="match-list">
+    {% for m in past %}
+    <a class="match-card match-card-past" href="{{ url_for('matches.detail', match_id=m.id) }}">
+      <div class="match-date">
+        <span class="match-day">{{ m.match_date.day }}</span>
+        <span class="match-month">{{ m.match_date.strftime('%m.%Y') }}</span>
+      </div>
+      <div class="match-info">
+        <div class="match-opponent">vs {{ m.opponent }}</div>
+      </div>
+      <span class="tag tag-past">Zakończony</span>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="muted">Brak historii meczów.</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Drużyna — GamePlan{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+  <div class="gate-grid">
+    <div class="auth-card">
+      <h2 class="card-title">Dołącz do drużyny</h2>
+      <p class="muted">Wpisz kod otrzymany od kapitana drużyny.</p>
+      <form method="POST" action="{{ url_for('main.team_join') }}" class="form">
+        <label>Kod drużyny</label>
+        <input type="text" name="code" value="{{ pending_code }}" required maxlength="16" style="text-transform:uppercase" placeholder="np. A1B2C3D4">
+        <label>Twoja rola</label>
+        <div class="radio-row">
+          <label class="radio-pill"><input type="radio" name="role" value="player" checked> Gracz</label>
+          <label class="radio-pill"><input type="radio" name="role" value="reserve"> Rezerwowy</label>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Dołącz</button>
+      </form>
+    </div>
+
+    <div class="auth-card">
+      <h2 class="card-title">Utwórz nową drużynę</h2>
+      <p class="muted">Zostaniesz kapitanem i graczem. Otrzymasz kod do zapraszania innych.</p>
+      <form method="POST" action="{{ url_for('main.team_create') }}" class="form">
+        <label>Nazwa drużyny</label>
+        <input type="text" name="name" required maxlength="120" placeholder="np. Team cweli">
+        <button type="submit" class="btn btn-accent btn-block">Utwórz drużynę</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

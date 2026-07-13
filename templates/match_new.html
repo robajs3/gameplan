@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Nowy mecz{% endblock %}
+{% block content %}
+<div class="container container-narrow">
+  <div class="page-head">
+    <a href="{{ url_for('matches.index') }}" class="back-link">← Wróć do meczów</a>
+    <h1>Nowy mecz</h1>
+  </div>
+
+  <div class="card">
+    <form method="POST" class="form">
+      <label>Przeciwnik</label>
+      <input type="text" name="opponent" required maxlength="120" placeholder="np. Team Omega">
+
+      <div class="hours-row">
+        <div>
+          <label>Data</label>
+          <input type="date" name="match_date" required>
+        </div>
+        <div>
+          <label>Godzina</label>
+          <input type="time" name="match_time">
+        </div>
+      </div>
+
+      <label>Match room / dane serwera</label>
+      <textarea name="match_room" rows="3" placeholder="IP:port, hasło, link do lobby, format (Bo1/Bo3)..."></textarea>
+
+      <label>Mapy, które chcemy grać</label>
+      <div class="checkbox-grid">
+        {% for m in maps %}
+        <label class="checkbox-pill">
+          <input type="checkbox" name="maps_plan" value="{{ m.key }}"> {{ m.display_name }}
+        </label>
+        {% endfor %}
+      </div>
+
+      <label>Analiza przedmeczowa</label>
+      <textarea name="analysis" rows="8" placeholder="Styl gry przeciwnika, kluczowi gracze, na co uważać, plan ban/picków..."></textarea>
+
+      <button type="submit" class="btn btn-primary btn-block">Dodaj mecz</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

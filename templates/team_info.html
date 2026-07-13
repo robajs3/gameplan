@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}{{ team.name }} — Zespół{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-head">
+    <h1>{{ team.name }}</h1>
+    <p class="muted">Zarządzaj składem i zapraszaj nowych graczy</p>
+  </div>
+
+  <div class="card invite-card">
+    <h3>Zaproś do drużyny</h3>
+    <div class="invite-row">
+      <div>
+        <span class="muted small">Kod dołączenia</span>
+        <div class="code-display" id="joinCode">{{ team.join_code }}</div>
+      </div>
+      <div class="invite-actions">
+        <button class="btn btn-ghost btn-sm" onclick="copyText('joinCode')">Kopiuj kod</button>
+        <button class="btn btn-ghost btn-sm" onclick="copyText('inviteLink')">Kopiuj link</button>
+      </div>
+    </div>
+    <input id="inviteLink" class="link-display" type="text" readonly value="{{ invite_link }}" onclick="this.select()">
+  </div>
+
+  <div class="card">
+    <h3>Skład ({{ members|length }})</h3>
+    <table class="table">
+      <thead><tr><th>Gracz</th><th>Rola</th><th>Dołączył</th></tr></thead>
+      <tbody>
+      {% for m in members %}
+        <tr>
+          <td>{{ m.user.username }} {% if m.user_id == team.owner_id %}<span class="tag tag-owner">kapitan</span>{% endif %}</td>
+          <td><span class="tag {{ 'tag-player' if m.role == 'player' else 'tag-reserve' }}">{{ 'Gracz' if m.role == 'player' else 'Rezerwowy' }}</span></td>
+          <td class="muted">{{ m.joined_at.strftime('%d.%m.%Y') }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <form method="POST" action="{{ url_for('main.team_leave') }}" onsubmit="return confirm('Na pewno chcesz opuścić drużynę?');">
+    <button type="submit" class="btn btn-danger-ghost btn-sm">Opuść drużynę</button>
+  </form>
+</div>
+{% endblock %}

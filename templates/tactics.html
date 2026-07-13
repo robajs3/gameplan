@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}Taktyki — {{ team.name }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-head">
+    <h1>Taktyki i mapy</h1>
+    <p class="muted">Ustal swoje preferencje map i zobacz ranking drużyny. Kliknij mapę, aby przejść do taktyk.</p>
+  </div>
+
+  <div class="tactics-grid">
+    <div class="card">
+      <h3>Ranking drużyny</h3>
+      <p class="muted small">Suma punktów przyznanych przez wszystkich członków (6 pkt = najlepsza mapa, 0 pkt = najgorsza).</p>
+      <table class="table ranking-table">
+        <thead><tr><th>#</th><th>Mapa</th><th>Punkty</th><th>Śr.</th><th>Głosy</th><th></th></tr></thead>
+        <tbody>
+        {% for r in ranking %}
+          <tr>
+            <td class="rank-num">{{ loop.index }}</td>
+            <td><strong>{{ r.map.display_name }}</strong></td>
+            <td><span class="points-badge">{{ r.total }}</span></td>
+            <td class="muted">{{ r.avg if r.avg is not none else '—' }}</td>
+            <td class="muted">{{ r.votes }}</td>
+            <td><a class="btn btn-ghost btn-sm" href="{{ url_for('tactics.map_detail', map_id=r.map.id) }}">Taktyki →</a></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>Twoje preferencje</h3>
+      <p class="muted small">Przeciągnij mapy, aby ustawić kolejność od najlepszej (góra, 6 pkt) do najgorszej (dół, 0 pkt).</p>
+      <form method="POST" action="{{ url_for('tactics.save_preferences') }}" id="prefsForm">
+        <ul class="sortable-list" id="sortableMaps">
+          {% for m in my_order %}
+          <li class="sortable-item" draggable="true" data-id="{{ m.id }}">
+            <span class="drag-handle">⠿</span>
+            <span class="sortable-points">{{ 6 - loop.index0 }}</span>
+            <span>{{ m.display_name }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+        <div id="orderInputs"></div>
+        <button type="submit" class="btn btn-primary btn-block btn-sm mt">Zapisz preferencje</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card mt">
+    <h3>Wszystkie mapy w puli</h3>
+    <div class="map-tiles">
+      {% for m in maps %}
+      <a class="map-tile" href="{{ url_for('tactics.map_detail', map_id=m.id) }}">
+        <span class="map-tile-name">{{ m.display_name }}</span>
+        {% if m.id in prefs %}<span class="map-tile-pts">Twoja ocena: {{ prefs[m.id] }} pkt</span>{% endif %}
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/tactics.js') }}"></script>
+{% endblock %}

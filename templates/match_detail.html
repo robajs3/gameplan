@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}vs {{ m.opponent }} — Mecz{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-head page-head-row">
+    <div>
+      <a href="{{ url_for('matches.index') }}" class="back-link">← Wróć do meczów</a>
+      <h1>vs {{ m.opponent }}</h1>
+      <p class="muted">{{ m.match_date.strftime('%d.%m.%Y') }}{% if m.match_time %} • godz. {{ m.match_time }}{% endif %}</p>
+    </div>
+    <form method="POST" action="{{ url_for('matches.delete_match', match_id=m.id) }}" onsubmit="return confirm('Usunąć ten mecz?');">
+      <button type="submit" class="btn btn-danger-ghost btn-sm">Usuń mecz</button>
+    </form>
+  </div>
+
+  <form method="POST" action="{{ url_for('matches.edit', match_id=m.id) }}" class="form">
+    <div class="card">
+      <h3>Match room</h3>
+      <textarea name="match_room" rows="3" placeholder="IP:port, hasło, link do lobby...">{{ m.match_room or '' }}</textarea>
+    </div>
+
+    <div class="card">
+      <h3>Mapy, które chcemy grać</h3>
+      <div class="checkbox-grid">
+        {% for gm in all_maps %}
+        <label class="checkbox-pill">
+          <input type="checkbox" name="maps_plan" value="{{ gm.key }}" {{ 'checked' if gm.key in current_plan_keys }}> {{ gm.display_name }}
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Analiza przedmeczowa</h3>
+      <textarea name="analysis" rows="10" placeholder="Styl gry przeciwnika, kluczowi gracze...">{{ m.analysis or '' }}</textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
+  </form>
+
+  <div class="card">
+    <h3>Grafiki (demo, statystyki, plan taktyczny)</h3>
+    <form method="POST" action="{{ url_for('matches.upload_image', match_id=m.id) }}" enctype="multipart/form-data" class="upload-form">
+      <input type="file" name="image" accept="image/png,image/jpeg,image/gif,image/webp" required>
+      <input type="text" name="caption" placeholder="Opis grafiki (opcjonalnie)" maxlength="200">
+      <button type="submit" class="btn btn-accent btn-sm">Dodaj grafikę</button>
+    </form>
+
+    {% if images %}
+    <div class="gallery">
+      {% for img in images %}
+      <div class="gallery-item">
+        <img src="{{ url_for('static', filename='uploads/' + img.filename) }}" alt="{{ img.caption or 'analiza' }}">
+        {% if img.caption %}<div class="gallery-caption">{{ img.caption }}</div>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="muted">Brak grafik. Dodaj pierwszą powyżej.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
