@@ -1,7 +1,7 @@
 from datetime import date, timedelta, datetime
 from functools import wraps
 
-from flask import Blueprint, render_template, redirect, url_for, flash, request, session
+from flask import Blueprint, render_template, redirect, url_for, flash, request, session, jsonify
 from flask_login import login_required, current_user
 
 from extensions import db
@@ -228,6 +228,59 @@ def set_availability():
     db.session.commit()
     flash('Zapisano Twoją dostępność.', 'success')
     return redirect(url_for('main.dashboard') + f'#day-{d}')
+
+
+@main_bp.route('/dashboard/availability/copy', methods=['POST'])
+@login_required
+@team_required
+def copy_availability():
+    """Kopiuje dostępność (status + godziny) bieżącego użytkownika z dnia
+    źródłowego na dzień docelowy (drag & drop w kalendarzu).
+
+    Warunek: jeśli w dniu docelowym użytkownik ma już zapisaną dostępność
+    z innymi godzinami niż w dniu źródłowym, kopiowanie jest odrzucane —
+    żeby przypadkowe przeciągnięcie nie nadpisało innych, celowo ustawionych
+    godzin. Jeśli dzień docelowy jest pusty albo ma już te same godziny,
+    kopiowanie jest wykonywane.
+    """
+    data = request.get_json(silent=True) or {}
+    source_str = data.get('source_date')
+    target_str = data.get('target_date')
+
+    try:
+        source_day = datetime.strptime(source_str, '%Y-%m-%d').date()
+        target_day = datetime.strptime(target_str, '%Y-%m-%d').date()
+    except (TypeError, ValueError):
+        return jsonify(ok=False, message='Nieprawidłowa data.'), 400
+
+    if source_day == target_day:
+        return jsonify(ok=False, message='Dzień źródłowy i docelowy są takie same.'), 400
+
+    source_row = Availability.query.filter_by(user_id=current_user.id, date=source_day).first()
+    if not source_row:
+        return jsonify(ok=False, message='Brak ustawionej dostępności w dniu źródłowym.'), 400
+
+    target_row = Availability.query.filter_by(user_id=current_user.id, date=target_day).first()
+
+    if target_row and (
+        target_row.time_from != source_row.time_from or target_row.time_to != source_row.time_to
+    ):
+        return jsonify(
+            ok=False,
+            message='W dniu docelowym masz już ustawione inne godziny dostępności.',
+        ), 409
+
+    if not target_row:
+        target_row = Availability(user_id=current_user.id, team_id=current_user.team.id, date=target_day)
+        db.session.add(target_row)
+
+    target_row.status = source_row.status
+    target_row.time_from = source_row.time_from
+    target_row.time_to = source_row.time_to
+    target_row.note = source_row.note
+    db.session.commit()
+
+    return jsonify(ok=True, message='Skopiowano dostępność.', date=target_str)
 
 
 @main_bp.route('/dashboard/session', methods=['POST'])

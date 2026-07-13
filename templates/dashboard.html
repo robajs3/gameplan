@@ -4,7 +4,7 @@
 <div class="container">
   <div class="page-head">
     <h1>Terminarz drużyny</h1>
-    <p class="muted">Najbliższe 14 dni — najedź kursorem na dzień, by zobaczyć dostępność graczy. Kliknij, aby dodać wpis.</p>
+    <p class="muted">Najbliższe 14 dni — najedź kursorem na dzień, by zobaczyć dostępność graczy. Kliknij, aby dodać wpis. Dni z ustawioną dostępnością możesz przeciągnąć na inny dzień, aby skopiować godziny.</p>
   </div>
 
   <div class="legend">
@@ -19,7 +19,13 @@
 
   <div class="calendar-grid">
     {% for day in calendar_data %}
-    <div class="day-cell {{ 'is-today' if day.is_today }} {{ 'is-weekend' if day.is_weekend }}" data-date="{{ day.date }}" id="day-{{ day.date }}">
+    <div class="day-cell {{ 'is-today' if day.is_today }} {{ 'is-weekend' if day.is_weekend }}"
+         data-date="{{ day.date }}"
+         data-my-status="{{ day.my_status }}"
+         data-my-time-from="{{ day.my_time_from or '' }}"
+         data-my-time-to="{{ day.my_time_to or '' }}"
+         {% if day.my_status %}draggable="true"{% endif %}
+         id="day-{{ day.date }}">
       <div class="day-head">
         <span class="day-name">{{ day.day_name }}</span>
         <span class="day-num">{{ day.day_num }} {{ day.month_name }}</span>
@@ -177,5 +183,8 @@
 
 {% endblock %}
 {% block scripts %}
+<script>
+  window.COPY_AVAILABILITY_URL = "{{ url_for('main.copy_availability') }}";
+</script>
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}
