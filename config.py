@@ -6,8 +6,8 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-zmien-mnie-w-produkcji')
 
-    # Baza danych - PostgreSQL (podglądana np. w DBeaver)
-    # Ustaw zmienną środowiskową DATABASE_URL albo edytuj wartość domyślną poniżej.
+    SESSION_COOKIE_PATH = '/gameplan'
+
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         'DATABASE_URL',
         'postgresql+psycopg2://gameplan:gameplan@localhost:5432/gameplan'

@@ -11,7 +11,10 @@ from models import User, GameMap, MAP_POOL
 
 
 def create_app():
-    app = Flask(__name__)
+    # Aplikacja jest wystawiona pod prefixem /gameplan (inna aplikacja
+    # obsługuje "/"), dlatego statyki też przenosimy pod ten prefix, żeby
+    # url_for('static', ...) generował poprawne ścieżki.
+    app = Flask(__name__, static_url_path='/gameplan/static')
     app.config.from_object('config.Config')
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
@@ -23,10 +26,10 @@ def create_app():
     from routes.tactics import tactics_bp
     from routes.matches import matches_bp
 
-    app.register_blueprint(auth_bp)
-    app.register_blueprint(main_bp)
-    app.register_blueprint(tactics_bp)
-    app.register_blueprint(matches_bp)
+    app.register_blueprint(auth_bp, url_prefix='/gameplan')
+    app.register_blueprint(main_bp, url_prefix='/gameplan')
+    app.register_blueprint(tactics_bp, url_prefix='/gameplan' + tactics_bp.url_prefix)
+    app.register_blueprint(matches_bp, url_prefix='/gameplan' + matches_bp.url_prefix)
 
     @login_manager.user_loader
     def load_user(user_id):
@@ -49,4 +52,4 @@ def create_app():
 app = create_app()
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5005)
