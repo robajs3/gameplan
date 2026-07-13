@@ -105,14 +105,24 @@ class MapPreference(db.Model):
 
 
 class MapTactic(db.Model):
+    """Pojedyncza taktyka (wariant) przypisana do drużyny i mapy.
+    Drużyna może mieć wiele taktyk na jednej mapie (np. „A default”,
+    „B rush eco”, „Retake setup”...), rozróżnianych przez `name`."""
     id = db.Column(db.Integer, primary_key=True)
     team_id = db.Column(db.Integer, db.ForeignKey('team.id'), nullable=False)
     map_id = db.Column(db.Integer, db.ForeignKey('game_map.id'), nullable=False)
+    name = db.Column(db.String(80), nullable=False, default='Domyślna taktyka')
     content = db.Column(db.Text, default='')
+    # JSON snapshot tablicy taktycznej: rysunki, gracze, granaty (patrz routes/tactics.py)
+    board_data = db.Column(db.Text, default='')
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    board_updated_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+    board_updated_at = db.Column(db.DateTime)
 
-    __table_args__ = (db.UniqueConstraint('team_id', 'map_id', name='uq_tactic_team_map'),)
+    map = db.relationship('GameMap')
 
 
 class TacticImage(db.Model):

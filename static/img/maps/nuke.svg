@@ -1,0 +1,13 @@
+<svg viewBox="0 0 1000 700" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif">
+<rect x="0" y="0" width="1000" height="700" fill="#11151c"/>
+<polygon points="260,50 740,50 740,240 260,240" fill="#1c222d" stroke="#3a4456" stroke-width="4" stroke-linejoin="round"/>
+<polygon points="380,240 620,240 620,360 380,360" fill="#1c222d" stroke="#3a4456" stroke-width="4" stroke-linejoin="round"/>
+<polygon points="220,380 780,380 780,520 220,520" fill="#1c222d" stroke="#3a4456" stroke-width="4" stroke-linejoin="round"/>
+<polygon points="340,520 660,520 660,650 340,650" fill="#1c222d" stroke="#3a4456" stroke-width="4" stroke-linejoin="round"/>
+<polygon points="290,70 710,70 710,220 290,220" fill="#ff6a1a" fill-opacity="0.14" stroke="#ff6a1a" stroke-opacity="0.55" stroke-width="2.5" stroke-dasharray="8 6"/>
+<polygon points="360,540 640,540 640,630 360,630" fill="#4da3ff" fill-opacity="0.14" stroke="#4da3ff" stroke-opacity="0.55" stroke-width="2.5" stroke-dasharray="8 6"/>
+<text x="500" y="150" fill="#ff6a1a" font-size="26" font-weight="700" letter-spacing="1" text-anchor="middle">A SITE (góra)</text>
+<text x="500" y="590" fill="#4da3ff" font-size="26" font-weight="700" letter-spacing="1" text-anchor="middle">B SITE (dół)</text>
+<text x="500" y="300" fill="#97a1b3" font-size="15" text-anchor="middle" opacity="0.8">Ramp / Zapadnia</text>
+<text x="500" y="450" fill="#97a1b3" font-size="15" text-anchor="middle" opacity="0.8">Lobby / Outside</text>
+</svg>

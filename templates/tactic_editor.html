@@ -1,10 +1,24 @@
 {% extends 'base.html' %}
-{% block title %}{{ map.display_name }} — Taktyki{% endblock %}
+{% block title %}{{ tactic.name }} — {{ map.display_name }}{% endblock %}
 {% block content %}
 <div class="container container-wide">
   <div class="page-head">
-    <a href="{{ url_for('tactics.index') }}" class="back-link">← Wróć do taktyk</a>
-    <h1>{{ map.display_name }}</h1>
+    <a href="{{ url_for('tactics.map_tactics', map_id=map.id) }}" class="back-link">← Wróć do taktyk: {{ map.display_name }}</a>
+    <div class="page-head-row">
+      <div class="tactic-title-row">
+        <h1 id="tacticTitle">{{ tactic.name }}</h1>
+        <button type="button" class="btn-icon-edit" id="renameBtn" title="Zmień nazwę taktyki">✎</button>
+      </div>
+      <form method="POST" action="{{ url_for('tactics.tactic_delete', tactic_id=tactic.id) }}"
+            onsubmit="return confirm('Usunąć taktykę „{{ tactic.name }}” razem z tablicą, opisem i grafikami? Tej operacji nie można cofnąć.');">
+        <button type="submit" class="btn btn-danger-ghost btn-sm">🗑 Usuń tę taktykę</button>
+      </form>
+    </div>
+    <form method="POST" action="{{ url_for('tactics.tactic_rename', tactic_id=tactic.id) }}" class="rename-form" id="renameForm">
+      <input type="text" name="name" value="{{ tactic.name }}" maxlength="80" required>
+      <button type="submit" class="btn btn-primary btn-sm">Zapisz nazwę</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="renameCancel">Anuluj</button>
+    </form>
   </div>
 
   <div class="card board-card">
@@ -51,27 +65,27 @@
     </div>
     <p class="muted small board-hint" id="boardHint">Wybierz narzędzie „Dodaj”, a potem kliknij na mapę, aby umieścić element. Elementy przeciągasz myszką. Najedź na element i kliknij ✕, aby go usunąć.</p>
 
-    <div class="board-canvas-wrap" id="boardWrap">
-      <img class="board-map-img" id="boardMapImg" src="{{ url_for('static', filename='img/maps/' + map.key + '.svg') }}"
-           alt="Layout mapy {{ map.display_name }}"
+    <div class="board-canvas-wrap board-canvas-wrap-square" id="boardWrap">
+      <img class="board-map-img" id="boardMapImg" src="{{ url_for('static', filename='img/maps/' + map.key + '.' + map_image_ext) }}"
+           alt="Radar mapy {{ map.display_name }}"
            onerror="this.style.display='none'; document.getElementById('boardMapFallback').style.display='flex';">
-      <div class="board-map-fallback" id="boardMapFallback">Brak layoutu dla tej mapy</div>
+      <div class="board-map-fallback" id="boardMapFallback">Brak grafiki mapy — wgraj <code>{{ map.key }}.{{ map_image_ext }}</code> do static/img/maps/</div>
       <canvas class="board-draw-canvas" id="boardCanvas"></canvas>
       <div class="board-objects" id="boardObjects"></div>
     </div>
   </div>
 
   <div class="card">
-    <h3>Opis taktyk</h3>
-    <form method="POST" action="{{ url_for('tactics.map_save', map_id=map.id) }}" class="form">
-      <textarea name="content" rows="10" placeholder="Opisz strategie, ustawienia, granaty, callouty...">{{ tactic.content if tactic else '' }}</textarea>
+    <h3>Opis taktyki</h3>
+    <form method="POST" action="{{ url_for('tactics.tactic_save', tactic_id=tactic.id) }}" class="form">
+      <textarea name="content" rows="10" placeholder="Opisz strategię, ustawienia, granaty, callouty...">{{ tactic.content or '' }}</textarea>
       <button type="submit" class="btn btn-primary btn-sm">Zapisz opis</button>
     </form>
   </div>
 
   <div class="card">
     <h3>Grafiki / callouty</h3>
-    <form method="POST" action="{{ url_for('tactics.map_upload', map_id=map.id) }}" enctype="multipart/form-data" class="upload-form">
+    <form method="POST" action="{{ url_for('tactics.tactic_upload', tactic_id=tactic.id) }}" enctype="multipart/form-data" class="upload-form">
       <input type="file" name="image" accept="image/png,image/jpeg,image/gif,image/webp" required>
       <input type="text" name="caption" placeholder="Opis grafiki (opcjonalnie)" maxlength="200">
       <button type="submit" class="btn btn-accent btn-sm">Dodaj grafikę</button>
@@ -81,16 +95,16 @@
     <div class="gallery">
       {% for img in images %}
       <div class="gallery-item">
-        <img src="{{ url_for('static', filename='uploads/' + img.filename) }}" alt="{{ img.caption or map.display_name }}">
+        <img src="{{ url_for('static', filename='uploads/' + img.filename) }}" alt="{{ img.caption or tactic.name }}">
         {% if img.caption %}<div class="gallery-caption">{{ img.caption }}</div>{% endif %}
-        <form method="POST" action="{{ url_for('tactics.image_delete', map_id=map.id, image_id=img.id) }}" onsubmit="return confirm('Usunąć tę grafikę?');">
+        <form method="POST" action="{{ url_for('tactics.image_delete', tactic_id=tactic.id, image_id=img.id) }}" onsubmit="return confirm('Usunąć tę grafikę?');">
           <button type="submit" class="btn-icon-del gallery-del" title="Usuń">✕</button>
         </form>
       </div>
       {% endfor %}
     </div>
     {% else %}
-    <p class="muted">Brak grafik dla tej mapy. Dodaj pierwszą powyżej.</p>
+    <p class="muted">Brak grafik dla tej taktyki. Dodaj pierwszą powyżej.</p>
     {% endif %}
   </div>
 </div>
@@ -98,12 +112,19 @@
 {% block scripts %}
 <script>
   window.GAMEPLAN_BOARD = {
-    mapId: {{ map.id }},
-    saveUrl: "{{ url_for('tactics.board_save', map_id=map.id) }}",
-    resetUrl: "{{ url_for('tactics.board_reset', map_id=map.id) }}",
+    tacticId: {{ tactic.id }},
+    saveUrl: "{{ url_for('tactics.board_save', tactic_id=tactic.id) }}",
+    resetUrl: "{{ url_for('tactics.board_reset', tactic_id=tactic.id) }}",
     initialData: {{ board_data | tojson }}
   };
 </script>
 <script src="{{ url_for('static', filename='js/tactic-board.js') }}"></script>
+<script>
+  document.getElementById('renameBtn').addEventListener('click', () => {
+    document.getElementById('renameForm').classList.toggle('active');
+  });
+  document.getElementById('renameCancel').addEventListener('click', () => {
+    document.getElementById('renameForm').classList.remove('active');
+  });
+</script>
 {% endblock %}
-

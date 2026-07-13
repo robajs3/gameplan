@@ -467,3 +467,164 @@ a { color: inherit; text-decoration: none; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 6px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* ===== Tactical board ===== */
+.container-wide { max-width: 1300px; }
+.board-card { padding-bottom: 20px; }
+.board-card-head { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.board-card-head h3 { margin: 0; }
+
+.board-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  margin-bottom: 8px;
+}
+.board-tool-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-right: 1px solid var(--border);
+}
+.board-tool-group:last-child { border-right: none; }
+.board-tool-group[data-group="actions"] { margin-left: auto; gap: 8px; }
+
+.board-btn {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  width: 36px;
+  height: 32px;
+  font-size: 15px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.12s;
+}
+.board-btn:hover { border-color: var(--accent); }
+.board-btn.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-2); }
+.board-add { width: auto; padding: 0 10px; gap: 4px; font-size: 13px; }
+
+.board-color {
+  width: 24px; height: 24px; border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--sw);
+  cursor: pointer;
+  padding: 0;
+}
+.board-color.active { border-color: var(--text); box-shadow: 0 0 0 2px var(--sw); }
+#boardWidth { width: 70px; margin-left: 6px; accent-color: var(--accent); }
+
+.board-hint { margin: 4px 0 12px; }
+
+.board-canvas-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 10 / 7;
+  background: #0a0d12;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+}
+.board-canvas-wrap-square { aspect-ratio: 1 / 1; max-width: 780px; margin: 0 auto; }
+.board-map-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+.board-map-fallback {
+  display: none;
+  position: absolute; inset: 0;
+  align-items: center; justify-content: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+.board-draw-canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: default; }
+.board-canvas-draw { cursor: crosshair; }
+.board-canvas-armed { cursor: copy !important; }
+
+.board-objects { position: absolute; inset: 0; }
+.board-obj {
+  position: absolute;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
+  font-weight: 800;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5), 0 0 0 2px rgba(255,255,255,0.15);
+  cursor: grab;
+  touch-action: none;
+}
+.board-obj:active { cursor: grabbing; }
+.board-obj-player { font-size: 14px; }
+.board-obj-del {
+  position: absolute;
+  top: -8px; right: -8px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--red);
+  color: #1a0508;
+  border: none;
+  font-size: 10px;
+  line-height: 18px;
+  cursor: pointer;
+  display: none;
+  padding: 0;
+}
+.board-obj:hover .board-obj-del { display: block; }
+
+@media (max-width: 720px) {
+  .board-toolbar { gap: 6px; }
+  .board-tool-group { border-right: none; padding: 2px 4px; }
+  .board-tool-group[data-group="actions"] { margin-left: 0; width: 100%; justify-content: flex-end; }
+}
+
+/* ===== Tactic list / editor extras ===== */
+.tactic-title-row { display: flex; align-items: center; gap: 10px; }
+.btn-icon-edit {
+  background: var(--panel-2); border: 1px solid var(--border); color: var(--text-dim);
+  width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-size: 14px;
+}
+.btn-icon-edit:hover { border-color: var(--accent); color: var(--accent-2); }
+
+.rename-form {
+  display: none;
+  gap: 8px;
+  align-items: center;
+  margin-top: 10px;
+}
+.rename-form.active { display: flex; }
+.rename-form input[type="text"] {
+  flex: 1; max-width: 360px;
+  background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 8px 10px; color: var(--text); font-size: 14px;
+}
+
+.new-tactic-form { display: flex; gap: 10px; flex-wrap: wrap; }
+.new-tactic-form input[type="text"] {
+  flex: 1; min-width: 240px;
+  background: var(--bg-alt); border: 1px solid var(--border); border-radius: 8px;
+  padding: 9px 12px; color: var(--text); font-size: 14px;
+}
+.new-tactic-form input[type="text"]:focus { outline: none; border-color: var(--accent); }
+
+.tactic-list { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+.tactic-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  transition: all 0.15s;
+}
+.tactic-list-item:hover { border-color: var(--accent); transform: translateX(2px); }
+.tactic-list-name { font-weight: 700; font-size: 15px; }

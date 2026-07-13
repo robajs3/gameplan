@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}{{ map.display_name }} — Taktyki{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-head">
+    <a href="{{ url_for('tactics.index') }}" class="back-link">← Wróć do map</a>
+    <h1>{{ map.display_name }}</h1>
+    <p class="muted">Taktyki drużyny na tej mapie. Możesz mieć ich dowolnie wiele — np. osobno dla A execu, B rusha czy retake'ów.</p>
+  </div>
+
+  <div class="card">
+    <h3>Nowa taktyka</h3>
+    <form method="POST" action="{{ url_for('tactics.tactic_new', map_id=map.id) }}" class="new-tactic-form">
+      <input type="text" name="name" placeholder="Nazwa np. „A default 4-1”, „B rush eco”, „Retake A”..." maxlength="80" required>
+      <button type="submit" class="btn btn-primary btn-sm">+ Dodaj taktykę</button>
+    </form>
+  </div>
+
+  {% if tactics %}
+  <div class="tactic-list">
+    {% for t in tactics %}
+    <a class="tactic-list-item" href="{{ url_for('tactics.tactic_detail', tactic_id=t.id) }}">
+      <div class="tactic-list-name">{{ t.name }}</div>
+      <div class="tactic-list-meta muted small">
+        {% if t.updated_at %}Ostatnia edycja: {{ t.updated_at.strftime('%d.%m.%Y %H:%M') }}{% endif %}
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card">
+    <p class="muted">Brak taktyk dla tej mapy. Dodaj pierwszą powyżej.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
