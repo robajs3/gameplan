@@ -1,0 +1,54 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-gameplan}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?ustaw POSTGRES_PASSWORD w pliku .env}
+      POSTGRES_DB: ${POSTGRES_DB:-gameplan}
+    volumes:
+      - gameplan_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-gameplan} -d ${POSTGRES_DB:-gameplan}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # Dołączona do sso_net, żeby panel admina LoginHub mógł się połączyć
+    # (tylko do odczytu) i pokazać listę userów gameplan przy łączeniu kont.
+    # Patrz README.md loginhub, sekcja "Podłączenie do sso_net".
+    networks:
+      - default
+      - sso_net
+
+  web:
+    build: .
+    container_name: gameplan-web
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-gameplan}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-gameplan}
+    volumes:
+      - gameplan_uploads:/app/static/uploads
+    ports:
+      - "5005:5005"
+    # Pozwala gameplan łączyć się z LoginHub (wystawionym na hoście na porcie 8011)
+    # przez host.docker.internal zamiast localhost/127.0.0.1.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - default
+
+networks:
+  default:
+  # Sieć zewnętrzna współdzielona z LoginHub, tworzona raz poleceniem:
+  #   docker network create sso_net
+  sso_net:
+    external: true
+
+volumes:
+  gameplan_pgdata:
+  gameplan_uploads:
