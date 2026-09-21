@@ -114,3 +114,5 @@ service-account.json
 # =========================
 
 *.pem
+
+*.patch
