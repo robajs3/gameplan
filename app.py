@@ -5,7 +5,9 @@ from dotenv import load_dotenv
 load_dotenv()  # wczytuje zmienne z pliku .env, jeśli istnieje
 
 from flask import Flask
+from flask_login import current_user, login_user
 
+import sso_client
 from extensions import db, login_manager
 from models import User, GameMap, MAP_POOL
 
@@ -34,6 +36,19 @@ def create_app():
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
+
+    @app.before_request
+    def _sso_autologin():
+        # Jeśli user jest już zalogowany lokalnie (albo przez wcześniejszy SSO
+        # autologin w tej sesji), nic nie robimy — hasło/tabela User w gameplan
+        # zostają nietknięte, SSO tylko "podszywa się" pod zwykłe logowanie.
+        if current_user.is_authenticated:
+            return
+        local_id = sso_client.resolve_local_user_id(app_slug="gameplan")
+        if local_id:
+            user = User.query.get(local_id)
+            if user:
+                login_user(user)
 
     with app.app_context():
         db.create_all()
