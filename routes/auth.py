@@ -1,6 +1,7 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, session
+from flask import Blueprint, render_template, redirect, url_for, flash, request, session, make_response
 from flask_login import login_user, logout_user, login_required, current_user
 
+import sso_client
 from extensions import db
 from models import User
 
@@ -66,4 +67,9 @@ def login():
 def logout():
     logout_user()
     flash('Wylogowano.', 'info')
-    return redirect(url_for('auth.login'))
+    response = make_response(redirect(url_for('auth.login')))
+    # Czyści też ciasteczko sso_session, żeby wylogowanie było globalne
+    # (ze wszystkich appek podpiętych pod LoginHub), a nie tylko lokalne —
+    # inaczej _sso_autologin zalogowałby z powrotem przy następnym żądaniu.
+    sso_client.clear_sso_cookie(response)
+    return response
