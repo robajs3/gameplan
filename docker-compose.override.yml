@@ -1,0 +1,13 @@
+# Dołącza gameplan do sieci sso_net (dostęp do LoginHub) i przekazuje .env do kontenera.
+# Compose wczytuje ten plik automatycznie razem z docker-compose.yml.
+services:
+  web:
+    env_file: .env
+    networks: [default, sso_net]
+  db:
+    networks: [default, sso_net]
+
+networks:
+  default:
+  sso_net:
+    external: true

@@ -61,10 +61,6 @@ def create_app():
     def inject_globals():
         return dict(today=date.today())
 
-    from sso_integration import init_sso
-
-    init_sso(app)
-
     return app
 
 
